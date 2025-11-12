@@ -680,7 +680,11 @@ export default function Dashboard() {
           {/* Generate & Join */}
           <div className="flex gap-2 mb-6">
             <button
-              onClick={() => generateRandomRoom()}
+              onClick={() => {
+                const newRoom = generateRandomRoom();
+                socket.emit("join-room", { roomId:newRoom, name: UserName, token });
+                console.log("🔗 Joined room:", newRoom);
+              }}
               className="flex-1 border border-blue-300 bg-blue-50 text-blue-700 rounded-lg py-2 hover:bg-blue-100 transition flex items-center justify-center gap-2"
             >
               <RefreshCw className="h-4 w-4" /> Generate

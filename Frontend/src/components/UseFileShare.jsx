@@ -19,6 +19,7 @@ export const useFileShare = (UserName, token) => {
   const incomingFileBuffer = useRef([]);
   const incomingFileName = useRef(null);
   const incomingFileSize = useRef(0);
+  const incomingFileSender = useRef(null);
   const receivedSize = useRef(0);
 
   const saveTransferLog = async ({ direction, status, file, roomId, peerDetails }) => {
@@ -31,7 +32,7 @@ export const useFileShare = (UserName, token) => {
         roomId,
         direction,
         status,
-        peerDetails: peerDetails || null,
+        peerName: peerDetails?.name || null,
       });
       console.log(`📜 Transfer log saved (${direction}, ${status})`);
     } catch (err) {
@@ -57,6 +58,7 @@ export const useFileShare = (UserName, token) => {
       if ((i + 1) % 5 === 0 && i !== 24) newRoomId += "-";
     }
     setRoomId(newRoomId);
+    return newRoomId;
   };
 
   const sendFile = useCallback(async () => {
@@ -68,7 +70,7 @@ export const useFileShare = (UserName, token) => {
       const buffer = await file.arrayBuffer();
       const totalChunks = Math.ceil(buffer.byteLength / chunkSize);
 
-      dataChannel.current.send(JSON.stringify({ type: "metadata", name: file.name, size: buffer.byteLength }));
+      dataChannel.current.send(JSON.stringify({ type: "metadata", name: file.name, size: buffer.byteLength,sender: UserName, }));
 
       let sentBytes = 0;
 
@@ -101,22 +103,27 @@ export const useFileShare = (UserName, token) => {
       setUploadProgress(100);
       setFileSent(true);
 
+     const otherPeer = peers.find((p) => p.name !== UserName) || null;
+
       await saveTransferLog({
         direction: "sent",
         status: "success",
         file,
         roomId,
-        peerDetails: peers.length > 0 ? peers[0].id : null,
+        peerDetails: otherPeer ? { name: otherPeer.name } : { name: "Unknown" },
       });
+
     } catch (err) {
       console.error("❌ Error sending file:", err);
+      const otherPeer = peers.find((p) => p.name !== UserName) || null;
       await saveTransferLog({
         direction: "sent",
         status: "failed",
         file,
         roomId,
-        peerDetails: peers.length > 0 ? peers[0].id : null,
+        peerDetails: otherPeer ? { name: otherPeer.name } : { name: "Unknown" },
       });
+
     }
   }, [files, roomId, peers]);
 
@@ -142,6 +149,7 @@ export const useFileShare = (UserName, token) => {
             incomingFileSize.current = message.size;
             incomingFileBuffer.current = [];
             receivedSize.current = 0;
+            incomingFileSender.current = message.sender || "Unknown"; 
           }
         } catch (err) {
           console.error("Invalid JSON:", err);
@@ -161,9 +169,10 @@ export const useFileShare = (UserName, token) => {
             status: "success",
             file: { name: incomingFileName.current, size: incomingFileSize.current },
             roomId,
-            peerDetails: peers.length > 0 ? peers[0].id : null,
+            peerDetails: { name: incomingFileSender.current || (peers[0]?.name ?? "Unknown") },
           });
         }
+
       }
     };
   };

@@ -249,7 +249,7 @@ const ShowSummary = ({ item }) => {
       <p>Size: {(item.size / 1024).toFixed(2)} KB</p>
       <p>Room ID: {item.roomId}</p>
       <p>Status: {item.status}</p>
-      <p>Peer: {item.peerDetails || "N/A"}</p>
+      <p>Peer: {item.peerName || "Unknown"}</p>
       <p>Time: {new Date(item.timestamp).toLocaleString()}</p>
     </div>
   );
