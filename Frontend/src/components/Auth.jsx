@@ -289,7 +289,7 @@ const Auth = () => {
   const [registerEmail, setRegisterEmail] = useState("");
   const [registerPassword, setRegisterPassword] = useState("");
 
-  const API_BASE_URL = import.meta.env.VITE_BACKEND_URL; // ✅ Your backend base URL
+  // const API_BASE_URL = import.meta.env.VITE_BACKEND_URL; // ✅ Your backend base URL
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -299,13 +299,15 @@ const Auth = () => {
     }
 
     try {
-      const res = await axios.post(`${API_BASE_URL}/auth/login`, {
+      const res = await axios.post(`http://localhost:5000/api/auth/login`, {
         email: loginEmail,
         password: loginPassword,
       });
 
       alert("Logged in successfully!");
       localStorage.setItem("token", res.data.token); // optional
+      // sessionStorage.setItem("token", res.data.token); // optional
+      localStorage.setItem("UserName", res.data.user.username); // optional
       navigate("/dashboard");
     } catch (err) {
       console.error(err);
@@ -321,7 +323,7 @@ const Auth = () => {
     }
 
     try {
-      const res = await axios.post(`${API_BASE_URL}/auth/register`, {
+      const res = await axios.post(`http://localhost:5000/api/auth/register`, {
         username: registerUsername,
         email: registerEmail,
         password: registerPassword,
@@ -329,6 +331,7 @@ const Auth = () => {
 
       alert("Account created successfully!");
       localStorage.setItem("token", res.data.token); // optional
+      localStorage.setItem("UserName", res.data.user.username); // optional
       navigate("/dashboard");
     } catch (err) {
       console.error(err);

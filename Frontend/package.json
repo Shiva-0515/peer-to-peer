@@ -13,11 +13,14 @@
     "@tailwindcss/vite": "^4.1.16",
     "axios": "^1.13.0",
     "dotenv": "^17.2.3",
+    "downloadjs": "^1.4.7",
+    "jwt-decode": "^4.0.0",
     "lucide-react": "^0.548.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
+    "react-dropzone": "^14.3.8",
     "react-router-dom": "^7.9.4",
-    "socket.io-client": "^4.8.1",
+    "socket.io-client": "^4.7.5",
     "tailwindcss": "^4.1.16"
   },
   "devDependencies": {

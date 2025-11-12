@@ -1,152 +1,257 @@
-// import { useState, useEffect } from "react";
-// import { ArrowLeft, Search, Clock } from "lucide-react";
+// import React, { useEffect, useState } from "react";
+// import axios from "axios";
+// import { jwtDecode } from "jwt-decode";
 // import { useNavigate } from "react-router-dom";
 
-// const History = () => {
+// const API = "http://localhost:5001";
+
+// export default function History() {
+//   const token = localStorage.getItem("token");
+//   const [items, setItems] = useState([]);
+//   const [userId, setUserId] = useState(null);
+//   const [filter, setFilter] = useState("all");
+//   const [selectedItem, setSelectedItem] = useState(null); // 👈 track clicked item
 //   const navigate = useNavigate();
-//   const [history, setHistory] = useState([]);
-//   const [searchQuery, setSearchQuery] = useState("");
-//   const [filteredHistory, setFilteredHistory] = useState([]);
 
-//   // Placeholder: fetch transfer history from backend
+//   // ✅ Fetch userId from token
 //   useEffect(() => {
-//     const fetchHistory = async () => {
-//       try {
-//         // TODO: Replace this with backend API call
-//         // const response = await fetch("/api/history");
-//         // const data = await response.json();
-//         const data = []; // placeholder
-//         setHistory(data);
-//         setFilteredHistory(data);
-//       } catch (error) {
-//         console.error("Error fetching history:", error);
-//       }
-//     };
-//     fetchHistory();
-//   }, []);
-
-//   // Search logic
-//   useEffect(() => {
-//     if (searchQuery.trim() === "") {
-//       setFilteredHistory(history);
-//     } else {
-//       setFilteredHistory(
-//         history.filter((item) =>
-//           item.filename.toLowerCase().includes(searchQuery.toLowerCase()) ||
-//           item.username.toLowerCase().includes(searchQuery.toLowerCase())
-//         )
-//       );
+//     if (!token) return;
+//     try {
+//       const decoded = jwtDecode(token);
+//       setUserId(decoded.id);
+//     } catch (err) {
+//       console.error("❌ Invalid token:", err);
 //     }
-//   }, [searchQuery, history]);
+//   }, [token]);
+
+//   // ✅ Fetch all transfers for the user
+//   useEffect(() => {
+//     if (!userId) return;
+
+//     axios
+//       .get(`${API}/api/transfers/${userId}`)
+//       .then((res) => setItems(res.data))
+//       .catch((err) => console.error("❌ Error fetching history:", err));
+//   }, [userId]);
+
+//   const filteredItems =
+//     filter === "all" ? items : items.filter((i) => i.direction === filter);
 
 //   return (
-//     <div className="min-h-screen bg-gradient-to-br from-gray-200 via-white to-gray-100">
-//       {/* Header */}
-//       <header className="border-b bg-white/70 backdrop-blur-md sticky top-0 z-10 shadow-sm">
-//         <div className="max-w-5xl mx-auto px-4 py-4">
+//     <div className="p-6 max-w-4xl mx-auto">
+//       <div className="flex justify-between items-center mb-4">
+//         <h2 className="text-xl font-semibold">Transfer History</h2>
+//         <div className="flex gap-3">
+//           <select
+//             value={filter}
+//             onChange={(e) => setFilter(e.target.value)}
+//             className="border rounded-lg px-3 py-2 text-sm outline-none"
+//           >
+//             <option value="all">All</option>
+//             <option value="sent">Sent</option>
+//             <option value="received">Received</option>
+//           </select>
+
 //           <button
 //             onClick={() => navigate("/dashboard")}
-//             className="flex items-center text-gray-700 hover:text-black mb-4"
+//             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
 //           >
-//             <ArrowLeft className="h-4 w-4 mr-2" />
-//             Back to Dashboard
+//             ⬅ Back to Dashboard
 //           </button>
-//           <div>
-//             <h1 className="text-3xl font-bold mb-1">Transfer History</h1>
-//             <p className="text-gray-500">
-//               View all your sent and received files
-//             </p>
-//           </div>
-//         </div>
-//       </header>
-
-//       {/* Main Content */}
-//       <div className="max-w-5xl mx-auto px-4 py-8">
-//         <div className="bg-white shadow-md rounded-xl p-6">
-//           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
-//             <h2 className="text-xl font-semibold">Your Transfers</h2>
-//             <div className="relative mt-4 sm:mt-0 w-full sm:w-64">
-//               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-//               <input
-//                 type="text"
-//                 placeholder="Search by filename or username..."
-//                 className="w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-//                 value={searchQuery}
-//                 onChange={(e) => setSearchQuery(e.target.value)}
-//               />
-//             </div>
-//           </div>
-
-//           {/* History List or Empty State */}
-//           {filteredHistory.length === 0 ? (
-//             <div className="flex flex-col items-center justify-center py-16 text-center text-gray-500">
-//               <Clock className="h-16 w-16 text-gray-400 mb-4" />
-//               <h3 className="text-lg font-semibold mb-2">
-//                 No transfer history yet
-//               </h3>
-//               <p className="text-sm max-w-sm">
-//                 Your sent and received files will appear here once you start sharing.
-//               </p>
-//             </div>
-//           ) : (
-//             <div className="space-y-4">
-//               {filteredHistory.map((item, index) => (
-//                 <div
-//                   key={index}
-//                   className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition"
-//                 >
-//                   <div>
-//                     <p className="font-medium text-gray-800">{item.filename}</p>
-//                     <p className="text-xs text-gray-500">
-//                       Shared with {item.username} — {item.date}
-//                     </p>
-//                   </div>
-//                   <span
-//                     className={`px-3 py-1 text-xs font-semibold rounded-full ${
-//                       item.type === "sent"
-//                         ? "bg-blue-100 text-blue-600"
-//                         : "bg-green-100 text-green-600"
-//                     }`}
-//                   >
-//                     {item.type}
-//                   </span>
-//                 </div>
-//               ))}
-//             </div>
-//           )}
 //         </div>
 //       </div>
+
+//       {filteredItems.length === 0 ? (
+//         <p className="text-gray-500">No transfers yet</p>
+//       ) : (
+//         filteredItems.map((i) => (
+//           <div key={i._id} className="p-3 border rounded mb-2">
+//             <div className="flex justify-between">
+//               <div>
+//                 <div className="font-medium">{i.filename}</div>
+//                 <div
+//                   className="text-xs text-gray-500 cursor-pointer"
+//                   onClick={() => setSelectedItem(selectedItem?._id === i._id ? null : i)} // toggle
+//                 >
+//                   {i.direction === "sent" ? "📤 Sent" : "📥 Received"} •{" "}
+//                   {new Date(i.timestamp).toLocaleString()}
+//                 </div>
+//               </div>
+//               <div className="text-sm text-gray-600">
+//                 {(i.size / 1024).toFixed(2)} KB
+//               </div>
+//             </div>
+
+//             {/* ✅ Conditionally render the summary */}
+//             {selectedItem?._id === i._id && <ShowSummary item={i} />}
+//           </div>
+//         ))
+//       )}
+//     </div>
+//   );
+// }
+
+// // ✅ This stays a proper React component
+// const ShowSummary = ({ item }) => {
+//   const [summary, setSummary] = useState(null);
+
+//   useEffect(() => {
+//     const fetchSummary = async () => {
+//       try {
+//         const res = await axios.get(`${API}/api/transfers/summary/${item._id}`);
+//         setSummary(res.data);
+//       } catch (err) {
+//         console.error("❌ Error fetching summary:", err);
+//       }
+//     };
+
+//     if (item?._id) fetchSummary();
+//   }, [item]);
+
+//   if (!summary) return <p className="text-gray-500 text-sm">Loading summary...</p>;
+
+//   return (
+//     <div className="p-3 bg-gray-50 rounded-md mt-2 border border-gray-200">
+//       <p className="text-sm font-semibold text-gray-700 mb-1">
+//         {summary.direction === "sent" ? "📤 Sent File" : "📥 Received File"}
+//       </p>
+//       <p className="text-xs text-gray-600">Filename: {summary.filename}</p>
+//       <p className="text-xs text-gray-600">Size: {(summary.size / 1024).toFixed(2)} KB</p>
+//       <p className="text-xs text-gray-600">Room ID: {summary.roomId}</p>
+//       <p className="text-xs text-gray-600">Status: {summary.status}</p>
+//       <p className="text-xs text-gray-600">Peer: {summary.peerDetails}</p>
+//       <p className="text-xs text-gray-600">Time: {new Date(summary.timestamp).toLocaleString()}</p>
 //     </div>
 //   );
 // };
 
-// export default History;
-
-
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-const API = import.meta.env.VITE_API;
+import { jwtDecode } from "jwt-decode";
+import { useNavigate } from "react-router-dom";
 
-export default function History(){
-  const username = localStorage.getItem("username");
+const API = "http://localhost:5000";
+
+export default function History() {
+  const token = localStorage.getItem("token");
   const [items, setItems] = useState([]);
-  useEffect(()=>{
-    if(!username) return;
-    axios.get(`${API}/api/history/${username}`).then(res=>setItems(res.data)).catch(()=>{});
-  },[username]);
+  const [userId, setUserId] = useState(null);
+  const [filter, setFilter] = useState("all");
+  const [selectedItem, setSelectedItem] = useState(null);
+  const navigate = useNavigate();
+
+  function formatFileSize(bytes) {
+  if (bytes < 1024) return bytes + " B";
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + " KB";
+  if (bytes < 1024 * 1024 * 1024)
+    return (bytes / (1024 * 1024)).toFixed(2) + " MB";
+  return (bytes / (1024 * 1024 * 1024)).toFixed(2) + " GB";
+}
+
+  // ✅ Decode user ID from token
+  useEffect(() => {
+    if (!token) return;
+    try {
+      const decoded = jwtDecode(token);
+      setUserId(decoded.id);
+    } catch (err) {
+      console.error("❌ Invalid token:", err);
+    }
+  }, [token]);
+
+  // ✅ Fetch all transfers (with details) once per user
+  useEffect(() => {
+    if (!userId) return;
+
+    const fetchHistory = async () => {
+      try {
+        // Updated backend route (fetches all transfers with summary)
+        const res = await axios.get(`${API}/api/transfers/summary/user/${userId}`);
+        setItems(res.data.transactions || []);
+      } catch (err) {
+        console.error("❌ Error fetching transfer history:", err);
+      }
+    };
+
+    fetchHistory();
+  }, [userId]);
+
+  // ✅ Apply filter before rendering
+  const filteredItems =
+    filter === "all" ? items : items.filter((i) => i.direction === filter);
+
   return (
     <div className="p-6 max-w-4xl mx-auto">
-      <h2 className="text-xl font-semibold mb-4">Transfer History</h2>
-      {items.length===0 ? <p className="text-gray-500">No transfers yet</p> : items.map(i=>(
-        <div key={i._id} className="p-3 border rounded mb-2 flex justify-between">
-          <div>
-            <div className="font-medium">{i.filename}</div>
-            <div className="text-xs text-gray-500">{i.sender} → {i.receiver} • {new Date(i.timestamp).toLocaleString()}</div>
-          </div>
-          <div className="text-sm text-gray-600">{(i.size/1024).toFixed(2)} KB</div>
+      {/* Header Section */}
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-semibold">Transfer History</h2>
+        <div className="flex gap-3">
+          <select
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            className="border rounded-lg px-3 py-2 text-sm outline-none"
+          >
+            <option value="all">All</option>
+            <option value="sent">Sent</option>
+            <option value="received">Received</option>
+          </select>
+
+          <button
+            onClick={() => navigate("/dashboard")}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+          >
+            ⬅ Back to Dashboard
+          </button>
         </div>
-      ))}
+      </div>
+
+      {/* Transfer List */}
+      {filteredItems.length === 0 ? (
+        <p className="text-gray-500">No transfers yet</p>
+      ) : (
+        filteredItems.map((i) => (
+          <div key={i._id} className="p-3 border rounded mb-2">
+            <div className="flex justify-between">
+              <div>
+                <div className="font-medium">{i.filename}</div>
+                <div
+                  className="text-xs text-gray-500 cursor-pointer"
+                  onClick={() =>
+                    setSelectedItem(selectedItem?._id === i._id ? null : i)
+                  }
+                >
+                  {i.direction === "sent" ? "📤 Sent" : "📥 Received"} •{" "}
+                  {new Date(i.timestamp).toLocaleString()}
+                </div>
+              </div>
+              <div className="text-sm text-gray-600">
+                {formatFileSize(i.size)}
+              </div>
+            </div>
+
+            {/* ✅ Toggle summary inline */}
+            {selectedItem?._id === i._id && <ShowSummary item={i} />}
+          </div>
+        ))
+      )}
     </div>
   );
 }
+
+// ✅ Summary Component — Now purely presentational
+const ShowSummary = ({ item }) => {
+  return (
+    <div className="p-3 bg-gray-50 rounded-md mt-2 border border-gray-200 text-xs text-gray-700">
+      <p className="font-semibold text-sm mb-1">
+        {item.direction === "sent" ? "📤 Sent File" : "📥 Received File"}
+      </p>
+      <p>Filename: {item.filename}</p>
+      <p>Size: {(item.size / 1024).toFixed(2)} KB</p>
+      <p>Room ID: {item.roomId}</p>
+      <p>Status: {item.status}</p>
+      <p>Peer: {item.peerDetails || "N/A"}</p>
+      <p>Time: {new Date(item.timestamp).toLocaleString()}</p>
+    </div>
+  );
+};
 
