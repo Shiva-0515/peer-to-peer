@@ -130,10 +130,11 @@ import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 import { useNavigate } from "react-router-dom";
 
-const API = "http://localhost:5000";
+const API = import.meta.env.VITE_BACKEND_URL;
 
 export default function History() {
   const token = localStorage.getItem("token");
+  // const name = localStorage.getItem("UserName");
   const [items, setItems] = useState([]);
   const [userId, setUserId] = useState(null);
   const [filter, setFilter] = useState("all");
@@ -183,6 +184,7 @@ export default function History() {
   return (
     <div className="p-6 max-w-4xl mx-auto">
       {/* Header Section */}
+      {/* <h1 className="text-3xl font-semibold">Hello {name},</h1> */}
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold">Transfer History</h2>
         <div className="flex gap-3">

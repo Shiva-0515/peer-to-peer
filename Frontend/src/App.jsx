@@ -5,9 +5,11 @@ import Dashboard from "./components/Dashboard";
 import History from "./components/History";
 import NotFound from "./components/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { Toaster } from 'react-hot-toast';
 
 const App = () => {
   return (
+    <>
     <BrowserRouter>
       <Routes><Route path="/" element={<Landing />} />
         
@@ -19,6 +21,8 @@ const App = () => {
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
+    <Toaster position="top-center" />
+    </>
   );
 };
 

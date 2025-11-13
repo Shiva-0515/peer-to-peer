@@ -14,14 +14,47 @@ const app = express();
 dotenv.config();
 connectDB();
 
-app.use(cors());
+const CLIENT_URL = process.env.CLIENT_URL || '*';
+console.log("🌐 Allowed Client URL:", CLIENT_URL);
+
+app.use(cors({
+  origin: function(origin, callback) {
+    console.log("🌐 CORS Check =>", origin);
+    callback(null, true);
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+}));
+
+// Required for preflight
+app.options(/.*/, cors());
+
+app.use((req, res, next) => {
+  console.log("➡️ Incoming request:", req.method, req.url);
+  console.log("   Origin:", req.headers.origin);
+
+  res.on("finish", () => {
+    console.log("⬅️ Response:", res.statusCode);
+    console.log("   ACAO:", res.getHeader("Access-Control-Allow-Origin"));
+    console.log("----------------------------------");
+  });
+
+  next();
+});
+
+app.options(/.*/, cors({
+  origin: CLIENT_URL,
+  credentials: true,
+}));
+
+
 app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/transfers", transferRoutes);
 // app.listen(5000 , console.log(`🚀 REST API Server running on port 5001`));
 // Config
 const PORT = process.env.PORT || 5000;
-const CLIENT_URL = process.env.CLIENT_URL || '*';
+
 
 // Create standalone Socket.IO server
 const server = http.createServer(app);

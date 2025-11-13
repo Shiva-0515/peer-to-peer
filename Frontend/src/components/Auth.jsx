@@ -278,8 +278,10 @@ import { useState } from "react";
 import { Zap, Lock, Share2, Gauge } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import toast from 'react-hot-toast';
 
 const Auth = () => {
+  const API = import.meta.env.VITE_BACKEND_URL;
   const navigate = useNavigate();
   const [tab, setTab] = useState("login");
 
@@ -299,43 +301,104 @@ const Auth = () => {
     }
 
     try {
-      const res = await axios.post(`http://localhost:5000/api/auth/login`, {
+      const res = await axios.post(`${API}/api/auth/login`, {
         email: loginEmail,
         password: loginPassword,
       });
 
-      alert("Logged in successfully!");
+      toast.success("Logged in successfully!" , {
+            style: {
+            border: '1px solid #1447E6',
+            padding: '16px',
+            color: '#1447E6',
+          },
+          iconTheme: {
+            primary: '#1447E6',
+            secondary: '#FFFAEE',
+          },
+      });
       localStorage.setItem("token", res.data.token); // optional
       // sessionStorage.setItem("token", res.data.token); // optional
       localStorage.setItem("UserName", res.data.user.username); // optional
-      navigate("/dashboard");
+      navigate("/");
     } catch (err) {
       console.error(err);
-      alert(err.response?.data?.message || "Login failed");
+      toast.error(err.response?.data?.message || "Login failed" ,{
+        style: {
+            border: '1px solid #1447E6',
+            padding: '16px',
+            color: '#1447E6',
+          },
+          iconTheme: {
+            primary: '#1447E6',
+            secondary: '#FFFAEE',
+          },
+      });
     }
   };
 
   const handleRegister = async (e) => {
     e.preventDefault();
     if (!registerUsername || !registerEmail || !registerPassword) {
-      alert("Please fill in all fields");
+      toast.dismiss();
+       toast.error("Please fill in all fields" , {
+            style: {
+            border: '1px solid #1447E6',
+            padding: '16px',
+            color: '#1447E6',
+          },
+          iconTheme: {
+            primary: '#1447E6',
+            secondary: '#FFFAEE',
+          },
+      });
       return;
     }
 
     try {
-      const res = await axios.post(`http://localhost:5000/api/auth/register`, {
+      const res = await axios.post(`${API}/api/auth/register`, {
         username: registerUsername,
         email: registerEmail,
         password: registerPassword,
       });
-
-      alert("Account created successfully!");
-      localStorage.setItem("token", res.data.token); // optional
-      localStorage.setItem("UserName", res.data.user.username); // optional
-      navigate("/dashboard");
+      console.log(res.data);
+        toast.success(
+          <div>
+            Account created successfully!
+            <div style={{ textAlign:"center" }}>Please log in.</div>
+          </div> , 
+          {
+            style: {
+            width: 'auto',
+            border: '1px solid #1447E6',
+            padding: '16px',
+            color: '#1447E6',
+          },
+          iconTheme: {
+            primary: '#1447E6',
+            secondary: '#FFFAEE',
+          },
+          duration: 2500,
+      });
+      // localStorage.setItem("token", res.data.token); // optional
+      // localStorage.setItem("UserName", res.data.user.username); // optional
+      navigate("/");
     } catch (err) {
       console.error(err);
-      alert(err.response?.data?.message || "Registration failed");
+      // alert(err.response?.data?.message || "Registration failed");
+      toast(err.response?.data?.message || "Registration failed" , {
+            style: {
+            width: 'auto',
+            border: '1px solid #1447E6',
+            padding: '16px',
+            color: '#1447E6',
+          },
+          iconTheme: {
+            primary: '#1447E6',
+            secondary: '#FFFAEE',
+          },
+          duration: 2500,
+      });
     }
   };
 

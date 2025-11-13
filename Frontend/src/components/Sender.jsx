@@ -4,7 +4,7 @@ import ProgressBar from "./ProgressBar";
 
 export default function Sender({
   files,
-  handleFileChange,
+  // handleFileChange,
   handleRemove,
   sendFile,
   uploadProgress,

@@ -3,8 +3,10 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { socket } from "../socket";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
+import { toast } from "react-hot-toast";
 
-export const useFileShare = (UserName, token) => {
+// export const useFileShare = (UserName, token) => {
+  export const useFileShare = (UserName) => {
   const [files, setFiles] = useState([]);
   const [receivedFiles, setReceivedFiles] = useState([]);
   const [connectionEstablished, setConnectionEstablished] = useState(false);
@@ -21,11 +23,13 @@ export const useFileShare = (UserName, token) => {
   const incomingFileSize = useRef(0);
   const incomingFileSender = useRef(null);
   const receivedSize = useRef(0);
+  const [incomingFile, setIncomingFile] = useState(null);
 
   const saveTransferLog = async ({ direction, status, file, roomId, peerDetails }) => {
     const decoded = jwtDecode(localStorage.getItem("token"));
+    const API = import.meta.env.VITE_BACKEND_URL;
     try {
-      await axios.post("http://localhost:5000/api/transfers", {
+      await axios.post(`${API}/api/transfers`, {
         userId: decoded.id,
         filename: file.name,
         size: file.size,
@@ -35,8 +39,33 @@ export const useFileShare = (UserName, token) => {
         peerName: peerDetails?.name || null,
       });
       console.log(`📜 Transfer log saved (${direction}, ${status})`);
+      toast.success(`📜 Transfer log saved (${direction}, ${status})` , {
+            style: {
+            width: 'auto',
+            border: '1px solid #1447E6',
+            padding: '16px',
+            color: '#1447E6',
+          },
+          iconTheme: {
+            primary: '#1447E6',
+            secondary: '#FFFAEE',
+          },
+          duration: 2500,
+      });
     } catch (err) {
-      console.error("❌ Error saving transfer log:", err.response?.data || err.message);
+      toast.error("Error saving transfer log:", err.response?.data || err.message , {
+            style: {
+            width: 'auto',
+            border: '1px solid #1447E6',
+            padding: '16px',
+            color: '#1447E6',
+          },
+          iconTheme: {
+            primary: '#1447E6',
+            secondary: '#FFFAEE',
+          },
+          duration: 2500,
+      });
     }
   };
 
@@ -70,6 +99,11 @@ export const useFileShare = (UserName, token) => {
       const buffer = await file.arrayBuffer();
       const totalChunks = Math.ceil(buffer.byteLength / chunkSize);
 
+            dataChannel.current.send(JSON.stringify({
+          type: "file-start",
+          name: file.name,
+          sender: UserName
+        }));
       dataChannel.current.send(JSON.stringify({ type: "metadata", name: file.name, size: buffer.byteLength,sender: UserName, }));
 
       let sentBytes = 0;
@@ -140,6 +174,17 @@ export const useFileShare = (UserName, token) => {
         try {
           const message = JSON.parse(event.data);
 
+           // show loader immediately
+            if (message.type === "file-start") {
+              incomingFileName.current = message.name;
+              incomingFileSender.current = message.sender;
+
+              // expose to UI
+              setIncomingFile(message.name);
+
+              return;
+            }
+
            if (message.type === "progress") {
                setReceiveProgress(message.progress);
            return;
@@ -163,7 +208,7 @@ export const useFileShare = (UserName, token) => {
           const url = URL.createObjectURL(receivedBlob);
           setReceivedFiles((prev) => [...prev, { name: incomingFileName.current, url }]);
           console.log("📥 File received and assembled");
-
+          setIncomingFile(null);
           saveTransferLog({
             direction: "received",
             status: "success",
@@ -280,6 +325,7 @@ export const useFileShare = (UserName, token) => {
     sendFile,
     generateRandomRoom,
     fileSent,
+    incomingFile,
     receiveProgress,
   };
 };

@@ -561,6 +561,7 @@ import {useFileShare} from "./UseFileShare.jsx";
 import Sender from "./Sender";
 import Receiver from "./Receiver";
 import { socket } from "../socket";
+import { toast } from "react-hot-toast";
 
 export default function Dashboard() {
   // const [isSender, setIsSender] = useState(false);
@@ -580,8 +581,8 @@ export default function Dashboard() {
     handleRemove,
     sendFile,
     generateRandomRoom,
+    incomingFile,
     fileSent,
-    receiveProgress,
   } = useFileShare(UserName, token);
 
   const fileInputRef = useRef(null);
@@ -606,7 +607,19 @@ export default function Dashboard() {
       {/* HEADER */}
       <header className="border-b border-gray-200 bg-blue-50 sticky top-0 z-10 shadow-sm">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <h1 className="font-bold text-lg text-blue-700">P2P File Share</h1>
+              <div>
+               <h1 className="font-bold text-lg text-blue-700">P2P File Share</h1>
+               <p className="text-xs font-semibold text-gray-500">
+                 User: <span className="text-blue-600">
+                   {UserName || "Unknown"}
+                 </span>
+                </p>
+               <p className="text-xs font-semibold text-gray-500">
+                 Room: <span className="text-blue-600">
+                   {roomId || "Not connected"}
+                 </span>
+               </p>
+             </div>
 
           <div className="flex gap-3">
             <button
@@ -646,10 +659,9 @@ export default function Dashboard() {
             handleClick={handleClick}
           />
           <Receiver
+            incomingFile={incomingFile}
             receivedFiles={receivedFiles}
           />
-
-
         </div>
 
         {/* PEERS SECTION */}
@@ -696,7 +708,19 @@ export default function Dashboard() {
                   socket.emit("join-room", { roomId, name: UserName, token });
                   console.log("🔗 Joined room:", roomId);
                 } else {
-                  alert("Please enter a valid room ID");
+                  toast.error("Please enter a valid room ID", {
+                    style: {
+                    width: 'auto',
+                    border: '1px solid #1447E6',
+                    padding: '16px',
+                    color: '#1447E6',
+                  },
+                  iconTheme: {
+                    primary: '#1447E6',
+                    secondary: '#FFFAEE',
+                  },
+                  duration: 2500,
+              });
                 }
               }}
               className="flex-1 border border-blue-300 bg-blue-500 text-white rounded-lg py-2 hover:bg-blue-600 transition"

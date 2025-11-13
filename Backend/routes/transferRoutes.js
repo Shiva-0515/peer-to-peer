@@ -6,7 +6,7 @@ const router = express.Router();
 // ✅ Log a transfer (sent or received)
 router.post("/", async (req, res) => {
   try {
-    const { userId, filename, size, roomId,status, direction, peerDetails } = req.body;
+    const { userId, filename, size, roomId,status, direction, peerName } = req.body;
 
     if (!userId || !filename || !size|| !status || !roomId || !direction) {
       return res.status(400).json({ error: "Missing required fields" });
@@ -19,7 +19,7 @@ router.post("/", async (req, res) => {
       roomId,
       status,
       direction,
-      peerDetails: peerDetails || null,
+      peerName,
     });
 
     await transfer.save();
@@ -81,7 +81,7 @@ router.get("/summary/user/:userId", async (req, res) => {
         roomId: t.roomId,
         status: t.status,
         direction: t.direction,
-        peerDetails: t.peerDetails || "N/A",
+        peerName: t.peerName || "N/A",
         timestamp: t.timestamp,
       })),
     });

@@ -7,7 +7,7 @@ const transferSchema = new mongoose.Schema({
   roomId: { type: String, required: true },
   status : { type: String, enum: ["success","failed"], default: "success"},
   direction: { type: String, enum: ["sent", "received"], required: true }, // "sent" or "received"
-  peerDetails: { type: String }, // optional (socket ID, peer name, etc.)
+  peerName: { type: String }, // optional (socket ID, peer name, etc.)
   timestamp: { type: Date, default: Date.now },
 });
 
