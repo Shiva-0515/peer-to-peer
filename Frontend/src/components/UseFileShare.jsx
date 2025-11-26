@@ -6,7 +6,7 @@ import { jwtDecode } from "jwt-decode";
 import { toast } from "react-hot-toast";
 
 // export const useFileShare = (UserName, token) => {
-  export const useFileShare = (UserName) => {
+export const useFileShare = (UserName) => {
   const [files, setFiles] = useState([]);
   const [receivedFiles, setReceivedFiles] = useState([]);
   const [connectionEstablished, setConnectionEstablished] = useState(false);
@@ -39,32 +39,32 @@ import { toast } from "react-hot-toast";
         peerName: peerDetails?.name || null,
       });
       console.log(`📜 Transfer log saved (${direction}, ${status})`);
-      toast.success(`📜 Transfer log saved (${direction}, ${status})` , {
-            style: {
-            width: 'auto',
-            border: '1px solid #1447E6',
-            padding: '16px',
-            color: '#1447E6',
-          },
-          iconTheme: {
-            primary: '#1447E6',
-            secondary: '#FFFAEE',
-          },
-          duration: 2500,
+      toast.success(`📜 Transfer log saved (${direction}, ${status})`, {
+        style: {
+          width: "auto",
+          border: "1px solid #1447E6",
+          padding: "16px",
+          color: "#1447E6",
+        },
+        iconTheme: {
+          primary: "#1447E6",
+          secondary: "#FFFAEE",
+        },
+        duration: 2500,
       });
     } catch (err) {
-      toast.error("Error saving transfer log:", err.response?.data || err.message , {
-            style: {
-            width: 'auto',
-            border: '1px solid #1447E6',
-            padding: '16px',
-            color: '#1447E6',
-          },
-          iconTheme: {
-            primary: '#1447E6',
-            secondary: '#FFFAEE',
-          },
-          duration: 2500,
+      toast.error("Error saving transfer log: " + (err.response?.data || err.message), {
+        style: {
+          width: "auto",
+          border: "1px solid #1447E6",
+          padding: "16px",
+          color: "#1447E6",
+        },
+        iconTheme: {
+          primary: "#1447E6",
+          secondary: "#FFFAEE",
+        },
+        duration: 2500,
       });
     }
   };
@@ -99,12 +99,21 @@ import { toast } from "react-hot-toast";
       const buffer = await file.arrayBuffer();
       const totalChunks = Math.ceil(buffer.byteLength / chunkSize);
 
-            dataChannel.current.send(JSON.stringify({
+      dataChannel.current.send(
+        JSON.stringify({
           type: "file-start",
           name: file.name,
-          sender: UserName
-        }));
-      dataChannel.current.send(JSON.stringify({ type: "metadata", name: file.name, size: buffer.byteLength,sender: UserName, }));
+          sender: UserName,
+        })
+      );
+      dataChannel.current.send(
+        JSON.stringify({
+          type: "metadata",
+          name: file.name,
+          size: buffer.byteLength,
+          sender: UserName,
+        })
+      );
 
       let sentBytes = 0;
 
@@ -130,14 +139,12 @@ import { toast } from "react-hot-toast";
         const progress = Math.floor((sentBytes / buffer.byteLength) * 100);
         setUploadProgress(progress);
         socket.emit("progress-update", { roomId, progress });
-
-        // dataChannel.current.send(JSON.stringify({ type: "progress", progress }));
       }
 
       setUploadProgress(100);
       setFileSent(true);
 
-     const otherPeer = peers.find((p) => p.name !== UserName) || null;
+      const otherPeer = peers.find((p) => p.name !== UserName) || null;
 
       await saveTransferLog({
         direction: "sent",
@@ -146,7 +153,6 @@ import { toast } from "react-hot-toast";
         roomId,
         peerDetails: otherPeer ? { name: otherPeer.name } : { name: "Unknown" },
       });
-
     } catch (err) {
       console.error("❌ Error sending file:", err);
       const otherPeer = peers.find((p) => p.name !== UserName) || null;
@@ -157,9 +163,8 @@ import { toast } from "react-hot-toast";
         roomId,
         peerDetails: otherPeer ? { name: otherPeer.name } : { name: "Unknown" },
       });
-
     }
-  }, [files, roomId, peers]);
+  }, [files, roomId, peers, UserName]);
 
   const setupDataChannelListeners = (channel) => {
     channel.binaryType = "arraybuffer";
@@ -174,27 +179,27 @@ import { toast } from "react-hot-toast";
         try {
           const message = JSON.parse(event.data);
 
-           // show loader immediately
-            if (message.type === "file-start") {
-              incomingFileName.current = message.name;
-              incomingFileSender.current = message.sender;
+          // show loader immediately
+          if (message.type === "file-start") {
+            incomingFileName.current = message.name;
+            incomingFileSender.current = message.sender;
 
-              // expose to UI
-              setIncomingFile(message.name);
+            // expose to UI
+            setIncomingFile(message.name);
 
-              return;
-            }
+            return;
+          }
 
-           if (message.type === "progress") {
-               setReceiveProgress(message.progress);
-           return;
-         }
+          if (message.type === "progress") {
+            setReceiveProgress(message.progress);
+            return;
+          }
           if (message.type === "metadata") {
             incomingFileName.current = message.name;
             incomingFileSize.current = message.size;
             incomingFileBuffer.current = [];
             receivedSize.current = 0;
-            incomingFileSender.current = message.sender || "Unknown"; 
+            incomingFileSender.current = message.sender || "Unknown";
           }
         } catch (err) {
           console.error("Invalid JSON:", err);
@@ -217,11 +222,92 @@ import { toast } from "react-hot-toast";
             peerDetails: { name: incomingFileSender.current || (peers[0]?.name ?? "Unknown") },
           });
         }
-
       }
     };
   };
 
+  // 🔹 NEW: join-room + handle room-full / unauthorized
+  useEffect(() => {
+    if (!roomId) return;
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      toast.error("You must be logged in to join a room.",
+        {
+        style: {
+            border: '1px solid #1447E6',
+            padding: '16px',
+            color: '#1447E6',
+          },
+          iconTheme: {
+            primary: '#1447E6',
+            secondary: '#FFFAEE',
+          },
+      }
+      );
+      return;
+    }
+
+    // Tell backend we want to join
+    socket.emit("join-room", { roomId, name: UserName, token });
+
+    const handleRoomFull = (msg) => {
+      console.warn("Room full:", msg);
+      toast.error(msg || "Room is full. Only 2 users are allowed in this room.",
+        {
+        style: {
+            border: '1px solid #1447E6',
+            padding: '16px',
+            color: '#1447E6',
+          },
+          iconTheme: {
+            primary: '#1447E6',
+            secondary: '#FFFAEE',
+          },
+      }
+      );
+
+      setConnectionEstablished(false);
+      setPeers([]);
+      setUploadProgress(0);
+      setReceiveProgress(0);
+      setRoomId("");
+
+      if (peerConnection.current) {
+        peerConnection.current.close();
+        peerConnection.current = null;
+      }
+    };
+
+    const handleUnauthorized = (msg) => {
+      console.warn("Unauthorized:", msg);
+      toast.error(msg || "You are not authorized. Please log in again.");
+
+      setConnectionEstablished(false);
+      setPeers([]);
+      setUploadProgress(0);
+      setReceiveProgress(0);
+      setRoomId("");
+
+      if (peerConnection.current) {
+        peerConnection.current.close();
+        peerConnection.current = null;
+      }
+
+      // optional: force logout
+      // localStorage.removeItem("token");
+    };
+
+    socket.on("room-full", handleRoomFull);
+    socket.on("unauthorized", handleUnauthorized);
+
+    return () => {
+      socket.off("room-full", handleRoomFull);
+      socket.off("unauthorized", handleUnauthorized);
+    };
+  }, [roomId, UserName]);
+
+  // Existing WebRTC + signaling setup
   useEffect(() => {
     if (!roomId) return;
 
@@ -276,11 +362,13 @@ import { toast } from "react-hot-toast";
           return;
         }
 
-        await pc.addIceCandidate(new RTCIceCandidate({
-          candidate: candidateObj.candidate,
-          sdpMid: candidateObj.sdpMid || "0",
-          sdpMLineIndex: candidateObj.sdpMLineIndex || 0,
-        }));
+        await pc.addIceCandidate(
+          new RTCIceCandidate({
+            candidate: candidateObj.candidate,
+            sdpMid: candidateObj.sdpMid || "0",
+            sdpMLineIndex: candidateObj.sdpMLineIndex || 0,
+          })
+        );
 
         console.log("✅ Added ICE candidate:", candidateObj.candidate);
       } catch (err) {
@@ -289,17 +377,18 @@ import { toast } from "react-hot-toast";
     });
 
     socket.on("peer-list", (list) => {
-      setPeers(list.map((peer) => ({
-        id: peer.id,
-        name: peer.name,
-        connected: false,
-      })));
+      setPeers(
+        list.map((peer) => ({
+          id: peer.id,
+          name: peer.name,
+          connected: false,
+        }))
+      );
     });
-    
+
     socket.on("progress-update", ({ progress }) => {
       setReceiveProgress(progress);
     });
-
 
     return () => {
       socket.off("user-joined");
