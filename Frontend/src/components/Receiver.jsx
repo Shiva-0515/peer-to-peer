@@ -118,6 +118,32 @@ const SECURITY_QUOTES = [
 ];
 
 export default function Receiver({ receivedFiles, incomingFile }) {
+
+  const handleDownload = async (file) => {
+  const confirmDownload = window.confirm(`Do you want to download "${file.name}"?`);
+
+  if (!confirmDownload) return;
+
+  try {
+    // Create a temporary link element (programmatic download)
+    const link = document.createElement("a");
+    link.href = file.url;
+    link.download = file.name;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    // Show alert after a short delay (ensures browser starts download)
+    setTimeout(() => {
+      alert(`Download completed: ${file.name}`);
+    }, 800);
+    
+  } catch (err) {
+    alert("❌ Something went wrong while downloading. Try again.");
+    console.error(err);
+  }
+};
+
   const [quoteIndex, setQuoteIndex] = useState(0);
 
   // rotate quotes every 2 seconds
@@ -182,13 +208,12 @@ export default function Receiver({ receivedFiles, incomingFile }) {
                   <span className="text-gray-700 text-sm truncate">{file.name}</span>
                 </div>
 
-                <a
-                  href={file.url}
-                  download={file.name}
-                  className="text-blue-600 hover:underline text-sm font-medium"
+                <button
+                  onClick={() => handleDownload(file)}
+                  className="text-blue-600 hover:underline text-sm font-medium flex items-center gap-2"
                 >
                   <Download className="h-5 w-5" />
-                </a>
+                </button>
               </div>
             ))}
           </div>

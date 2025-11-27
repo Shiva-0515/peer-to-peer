@@ -249,7 +249,11 @@ export const useFileShare = (UserName) => {
     }
 
     // Tell backend we want to join
+    const joinTimeout = setTimeout(() => {
     socket.emit("join-room", { roomId, name: UserName, token });
+    console.log("🟢 Joined AFTER typing finished:", roomId);
+  }, 1000);
+
 
     const handleRoomFull = (msg) => {
       console.warn("Room full:", msg);
@@ -302,6 +306,7 @@ export const useFileShare = (UserName) => {
     socket.on("unauthorized", handleUnauthorized);
 
     return () => {
+      clearTimeout(joinTimeout);
       socket.off("room-full", handleRoomFull);
       socket.off("unauthorized", handleUnauthorized);
     };
