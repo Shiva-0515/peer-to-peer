@@ -9,6 +9,7 @@ import Sender from "./Sender";
 import Receiver from "./Receiver";
 import { socket } from "../socket";
 import { toast } from "react-hot-toast";
+import { Logout } from "./Logout.jsx";
 
 export default function Dashboard() {
   // const [isSender, setIsSender] = useState(false);
@@ -30,6 +31,7 @@ export default function Dashboard() {
     generateRandomRoom,
     incomingFile,
     fileSent,
+    joinRoom
   } = useFileShare(UserName, token);
 
   const fileInputRef = useRef(null);
@@ -77,10 +79,12 @@ export default function Dashboard() {
             </button>
 
             <button
-              onClick={() => {
-                navigate("/");
-                localStorage.removeItem("token");
-                localStorage.removeItem("UserName");
+              onClick={ async () => {
+                // navigate("/");
+                // localStorage.removeItem("token");
+                // localStorage.removeItem("UserName");
+                const result = await Logout();
+                if (result) navigate("/");
               }}
               className="flex items-center gap-2 border border-blue-200 px-3 py-1.5 rounded-lg bg-blue-100 hover:bg-blue-200 transition text-blue-700"
             >
@@ -152,7 +156,7 @@ export default function Dashboard() {
             <button
               onClick={() => {
                 if (roomId.trim() !== "") {
-                  socket.emit("join-room", { roomId, name: UserName, token });
+                  joinRoom();
                   console.log("🔗 Joined room:", roomId);
                 } else {
                   toast.error("Please enter a valid room ID", {

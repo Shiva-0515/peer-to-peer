@@ -1,113 +1,7 @@
-// // Receiver.jsx
-// import React from "react";
-// import { Inbox, File ,Download } from "lucide-react";
-
-// export default function Receiver({ receivedFiles , incomingFile}) {
-//   if (receivedFiles.length === 0) return null;
-
-//   return (
-//     <div className="bg-white border rounded-xl p-4 shadow-sm mt-4">
-//       <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-//         <Inbox className="h-6 w-6 mr-2 text-green-600" /> Received Files
-//       </h3>
-
-//       <div className="space-y-2">
-//         {receivedFiles.map((file, i) => (
-//           <div
-//             key={i}
-//             className="flex items-center justify-between py-2 px-3 hover:bg-gray-50 rounded-lg"
-//           >
-//             <div className="flex items-center">
-//               <File className="h-6 w-6 text-green-600 mr-3" />
-//               <span className="text-gray-700 text-sm truncate">{file.name}</span>
-              
-//             </div>
-//             <a
-//               href={file.url}
-//               download={file.name}
-//               className="text-blue-600 hover:underline text-sm font-medium"
-//             >
-//               <Download className="h-5 w-5" />
-//             </a>
-//           </div>
-//         ))}
-//       </div>
-//     </div>
-//   );
-// }
-
-
-
-
-// // Receiver.jsx
-// import React from "react";
-// import { Inbox, File, Download } from "lucide-react";
-
-// export default function Receiver({ receivedFiles, incomingFile }) {
-//   return (
-//     <div className="space-y-4 mt-4">
-
-//       {/* 🔵 Loader shown when we received only filename (file-start) */}
-//       {incomingFile && (
-//         <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 shadow-sm">
-//           <h3 className="text-lg font-semibold text-gray-800 mb-2 flex items-center">
-//             <Inbox className="h-6 w-6 mr-2 text-yellow-600" />
-//             Receiving File…
-//           </h3>
-
-//           <div className="flex items-center">
-//             <File className="h-6 w-6 text-yellow-600 mr-3" />
-//             <span className="text-gray-700 text-sm truncate">{incomingFile}</span>
-//           </div>
-
-//           {/* Animated loader bar */}
-//           <div className="mt-3 w-full bg-gray-200 rounded-full h-2">
-//             <div className="bg-yellow-500 h-2 rounded-full animate-pulse w-1/2"></div>
-//           </div>
-
-//           <p className="text-xs text-gray-500 mt-2">
-//             Waiting for file data…
-//           </p>
-//         </div>
-//       )}
-
-//       {/* 🟢 Show received files ONLY when real file arrives */}
-//       {receivedFiles.length > 0 && (
-//         <div className="bg-white border rounded-xl p-4 shadow-sm">
-//           <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-//             <Inbox className="h-6 w-6 mr-2 text-green-600" /> Received Files
-//           </h3>
-
-//           <div className="space-y-2">
-//             {receivedFiles.map((file, i) => (
-//               <div
-//                 key={i}
-//                 className="flex items-center justify-between py-2 px-3 hover:bg-gray-50 rounded-lg"
-//               >
-//                 <div className="flex items-center">
-//                   <File className="h-6 w-6 text-green-600 mr-3" />
-//                   <span className="text-gray-700 text-sm truncate">{file.name}</span>
-//                 </div>
-
-//                 <a
-//                   href={file.url}
-//                   download={file.name}
-//                   className="text-blue-600 hover:underline text-sm font-medium"
-//                 >
-//                   <Download className="h-5 w-5" />
-//                 </a>
-//               </div>
-//             ))}
-//           </div>
-//         </div>
-//       )}
-//     </div>
-//   );
-// }
-
-
 import React, { useEffect, useState } from "react";
 import { Inbox, File, Download, Lock, ShieldCheck, Zap } from "lucide-react";
+import toast from "react-hot-toast";
+import { confirmToast } from "./ConfirmToast";
 
 const SECURITY_QUOTES = [
   { text: "Your file is encrypted end-to-end 🔐", icon: Lock },
@@ -119,27 +13,59 @@ const SECURITY_QUOTES = [
 
 export default function Receiver({ receivedFiles, incomingFile }) {
 
-  const handleDownload = async (file) => {
-  const confirmDownload = window.confirm(`Do you want to download "${file.name}"?`);
+  
+//   const handleDownload = async (file) => {
+//   const confirmDownload = window.confirm(`Do you want to download "${file.name}"?`);
 
-  if (!confirmDownload) return;
+//   if (!confirmDownload) return;
+
+//   try {
+//     // Create a temporary link element (programmatic download)
+//     const link = document.createElement("a");
+//     link.href = file.url;
+//     link.download = file.name;
+//     document.body.appendChild(link);
+//     link.click();
+//     document.body.removeChild(link);
+
+//     // Show alert after a short delay (ensures browser starts download)
+//     setTimeout(() => {
+//       alert(`Download completed: ${file.name}`);
+//     }, 800);
+    
+//   } catch (err) {
+//     alert("❌ Something went wrong while downloading. Try again.");
+//     console.error(err);
+//   }
+// };
+
+  const handleDownload = async (file) => {
+  const confirm = await confirmToast(`Download "${file.name}"?`);
+
+  if (!confirm) {
+    toast("Download canceled", {
+      icon: "❌",
+      style: { border: "1px solid #1447E6", color: "#1447E6" },
+    });
+    return;
+  }
 
   try {
-    // Create a temporary link element (programmatic download)
     const link = document.createElement("a");
     link.href = file.url;
     link.download = file.name;
     document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
+    link.remove();
 
-    // Show alert after a short delay (ensures browser starts download)
-    setTimeout(() => {
-      alert(`Download completed: ${file.name}`);
-    }, 800);
-    
+    toast.success(`Download started: ${file.name}`, {
+      style: { border: "1px solid #1447E6", color: "#1447E6" },
+    });
+
   } catch (err) {
-    alert("❌ Something went wrong while downloading. Try again.");
+    toast.error("❌ Failed to download. Try again.", {
+      style: { border: "1px solid #1447E6", color: "#1447E6" },
+    });
     console.error(err);
   }
 };

@@ -1,5 +1,7 @@
 import { Zap, Lock, Share2, Gauge, Send, ArrowRight, Users, Shield, Rocket } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { Logout } from "./Logout";
+
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -8,11 +10,16 @@ const Landing = () => {
   const token = localStorage.getItem("token");
   const isLoggedIn = !!token;
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("UserName");
-    navigate("/");
-    window.location.reload();
+  const handleLogout = async () => {
+    // localStorage.removeItem("token");
+    // localStorage.removeItem("UserName");
+    // navigate("/");
+    // window.location.reload();
+    // navigate("/logout");
+    
+    const result = await Logout();
+    if (result) navigate("/");
+
   };
 
   const handleGetStarted = () => {

@@ -318,7 +318,6 @@ const Auth = () => {
           },
       });
       localStorage.setItem("token", res.data.token); // optional
-      // sessionStorage.setItem("token", res.data.token); // optional
       localStorage.setItem("UserName", res.data.user.username); // optional
       navigate("/");
     } catch (err) {

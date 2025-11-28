@@ -6,6 +6,7 @@ import History from "./components/History";
 import NotFound from "./components/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { Toaster } from 'react-hot-toast';
+import { Logout } from "./components/Logout";
 
 const App = () => {
   return (

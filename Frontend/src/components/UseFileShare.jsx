@@ -25,6 +25,22 @@ export const useFileShare = (UserName) => {
   const receivedSize = useRef(0);
   const [incomingFile, setIncomingFile] = useState(null);
 
+  const joinRoom = useCallback(() => {
+  if (!roomId) return;
+
+  socket.emit("leave-room", roomId);
+  
+  const token = localStorage.getItem("token");
+  if (!token) {
+    toast.error("You must be logged in to join a room.");
+    return;
+  }
+
+  socket.emit("join-room", { roomId, name: UserName, token });
+  console.log("🔗 Joining via button:", roomId);
+}, [roomId, UserName]);
+
+
   const saveTransferLog = async ({ direction, status, file, roomId, peerDetails }) => {
     const decoded = jwtDecode(localStorage.getItem("token"));
     const API = import.meta.env.VITE_BACKEND_URL;
@@ -248,13 +264,6 @@ export const useFileShare = (UserName) => {
       return;
     }
 
-    // Tell backend we want to join
-    const joinTimeout = setTimeout(() => {
-    socket.emit("join-room", { roomId, name: UserName, token });
-    console.log("🟢 Joined AFTER typing finished:", roomId);
-  }, 1000);
-
-
     const handleRoomFull = (msg) => {
       console.warn("Room full:", msg);
       toast.error(msg || "Room is full. Only 2 users are allowed in this room.",
@@ -306,7 +315,6 @@ export const useFileShare = (UserName) => {
     socket.on("unauthorized", handleUnauthorized);
 
     return () => {
-      clearTimeout(joinTimeout);
       socket.off("room-full", handleRoomFull);
       socket.off("unauthorized", handleUnauthorized);
     };
@@ -421,5 +429,6 @@ export const useFileShare = (UserName) => {
     fileSent,
     incomingFile,
     receiveProgress,
+    joinRoom
   };
 };
